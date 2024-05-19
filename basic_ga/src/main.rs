@@ -2,6 +2,11 @@ use std::env;
 use rand::Rng;
 fn score(genes: &Vec<u32>) -> Vec<f64>{
     let mut scores: Vec<f64> =  Vec::new();
+    for gene in genes.iter() {
+        let phenotype = (*gene as f64 - u32::MAX as f64 /2.0 );
+        let score = phenotype * phenotype + 100.0 * phenotype.cos();
+        scores.push(score);
+    }
     scores
 }
 fn main() {
@@ -32,7 +37,8 @@ fn main() {
         pool.push(rng.gen::<u32>());
     }
     //Evolution Process.
-    for _i in 0..n_generations {
+    for i in 0..n_generations {
         let scores: Vec<f64> = score(&pool);
+    println!("{}", scores[(i % n_samples) as usize]);
     }
 }

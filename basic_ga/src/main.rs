@@ -1,5 +1,7 @@
 use std::env;
 use rand::Rng;
+use rand::rngs::ThreadRng;
+
 //Sample struct contains samples gene and score
 struct Sample {
     gene: u32,
@@ -17,10 +19,24 @@ fn score_vec(genes: &Vec<u32>) -> Vec<f64>{
     }
     scores
 }
+fn mutate_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
+    for sample in pool.iter_mut() {
+        let seed:u32 =  rng.gen::<u32>();
+        let p:u32 = seed % 100;
+        if p < rate {
+            drop(p);
+            let mut_dig:u8 = (seed % 32) as u8;
+            let mutator:u32 = 1 << mut_dig;
+            sample.gene = sample.gene ^ mutator;
+            sample.score = score(sample.gene);
+        }
+    }
+}
 fn main() {
     //Parameters
     let mut n_generations: i32 = 10;
     let mut  n_samples: i32 = 10;
+    let mut mut_rate:u32 = 5;
     let args: Vec<String> = env::args().collect();
     let mut rng = rand::thread_rng();
     //handle args
@@ -52,6 +68,7 @@ fn main() {
     for i in 0..n_generations {
         //sort samples by score
         pool.sort_by(|s_1, s_2| s_1.score.partial_cmp(&s_2.score).unwrap());
+        mutate_pool(&mut pool, mut_rate, &mut rng);
         println!("Best is: {}", pool[0].score);
         println!("Worst is: {}", pool[(n_samples - 1) as usize].score);
     }

@@ -1,11 +1,19 @@
 use std::env;
 use rand::Rng;
-fn score(genes: &Vec<u32>) -> Vec<f64>{
+//Sample struct contains samples gene and score
+struct Sample {
+    gene: u32,
+    score: f64
+}
+fn score(gene: u32) -> f64 {
+        let phenotype = gene as f64 - u32::MAX as f64 /2.0 ;
+        phenotype * phenotype + 100.0 * phenotype.cos()
+}
+//This is possibly rendundant
+fn score_vec(genes: &Vec<u32>) -> Vec<f64>{
     let mut scores: Vec<f64> =  Vec::new();
     for gene in genes.iter() {
-        let phenotype = (*gene as f64 - u32::MAX as f64 /2.0 );
-        let score = phenotype * phenotype + 100.0 * phenotype.cos();
-        scores.push(score);
+        scores.push(score(*gene));
     }
     scores
 }
@@ -32,13 +40,19 @@ fn main() {
     println!("Samples: {}", n_samples);
     println!("Generations: {}", n_generations);
     //Create Gene pool
-    let mut pool: Vec<u32> = Vec::new();
+    let mut pool: Vec<Sample> = Vec::new();
     for _i in 0..n_samples {
-        pool.push(rng.gen::<u32>());
+        let gene:u32 = rng.gen::<u32>();
+        pool.push(Sample {
+            gene: gene,
+            score: score(gene),
+        });
     }
     //Evolution Process.
     for i in 0..n_generations {
-        let scores: Vec<f64> = score(&pool);
-    println!("{}", scores[(i % n_samples) as usize]);
+        //sort samples by score
+        pool.sort_by(|s_1, s_2| s_1.score.partial_cmp(&s_2.score).unwrap());
+        println!("Best is: {}", pool[0].score);
+        println!("Worst is: {}", pool[(n_samples - 1) as usize].score);
     }
 }

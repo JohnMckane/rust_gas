@@ -37,6 +37,7 @@ fn main() {
     let mut n_generations: i32 = 10;
     let mut  n_samples: i32 = 10;
     let mut mut_rate:u32 = 5;
+    let mut breed_rate:u32 = 5;
     let args: Vec<String> = env::args().collect();
     let mut rng = rand::thread_rng();
     //handle args
@@ -50,6 +51,8 @@ fn main() {
         match setting {
             "--generations" => n_generations = value,
             "--samples" => n_samples = value,
+            "--mutationRate" => mut_rate = value as u32,
+            "--breedRate" => breed_rate = value as u32,
             &_ => println!("Invalid Arg: {}", setting),
         }
     }

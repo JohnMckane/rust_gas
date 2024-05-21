@@ -9,7 +9,7 @@ struct Sample {
 }
 fn score(gene: u32) -> f64 {
         let phenotype = gene as f64 - u32::MAX as f64 /2.0 ;
-        phenotype * phenotype + 100.0 * phenotype.cos()
+        phenotype * phenotype
 }
 //This is possibly rendundant
 fn score_vec(genes: &Vec<u32>) -> Vec<f64>{
@@ -24,7 +24,6 @@ fn mutate_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         let seed:u32 =  rng.gen::<u32>();
         let p:u32 = seed % 100;
         if p < rate {
-            drop(p);
             let mut_dig:u8 = (seed % 32) as u8;
             let mutator:u32 = 1 << mut_dig;
             sample.gene = sample.gene ^ mutator;
@@ -32,6 +31,36 @@ fn mutate_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         }
     }
 }
+fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
+    let n_breeders:usize = (pool.len() * rate as usize / 100) as usize;
+    let mut child_index = pool.len() - 1;
+    for i in 0..n_breeders {
+        //Pick index of "mate"
+        let mate_index:usize = rng.gen::<usize>() % pool.len();
+        let middle = rng.gen::<u8>() % 32;
+        let g1:u32 = pool[i].gene;
+        let g2:u32 = pool[mate_index].gene;
+        let head_g1 = (g1 >> middle) << middle;
+        let head_g2 = (g2 >> middle) << middle;
+        let tail_g1 = (g1 << middle) >> middle;
+        let tail_g2 = (g2 << middle) >> middle;
+        //make new samples
+        let mut gene:u32 = head_g1 | tail_g2;
+        let mut new_score:f64 = score(gene);
+        pool[child_index] = Sample {
+            gene: gene,
+            score: new_score
+        };
+        child_index -= 1;
+        gene = head_g2 | tail_g1;
+        new_score = score(gene);
+        pool[child_index] = Sample {
+            gene: gene,
+            score: new_score
+        };
+        child_index -= 1;
+        }
+    }
 fn main() {
     //Parameters
     let mut n_generations: i32 = 10;
@@ -71,7 +100,14 @@ fn main() {
     for i in 0..n_generations {
         //sort samples by score
         pool.sort_by(|s_1, s_2| s_1.score.partial_cmp(&s_2.score).unwrap());
+        let best_gene = pool[0].gene;
+        let best_score = pool[0].score;
+        breed_pool(&mut pool, mut_rate, &mut rng);
         mutate_pool(&mut pool, mut_rate, &mut rng);
+        pool[0] = Sample{
+            gene: best_gene,
+            score: best_score
+        };
         println!("Best is: {}", pool[0].score);
         println!("Worst is: {}", pool[(n_samples - 1) as usize].score);
     }

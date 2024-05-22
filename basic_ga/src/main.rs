@@ -1,6 +1,6 @@
-use std::env;
 use rand::Rng;
 use rand::rngs::ThreadRng;
+mod get_params;
 
 //Sample struct contains samples gene and score
 struct Sample {
@@ -10,14 +10,6 @@ struct Sample {
 fn score(gene: u32) -> f32 {
         let phenotype = (gene as f32 - u32::MAX as f32 /2.0) / (0.125 * u32::MAX as f32) ;
         -phenotype * (phenotype * 10.0 * 3.141592).sin() + 1.0
-}
-//This is possibly rendundant
-fn score_vec(genes: &Vec<u32>) -> Vec<f32>{
-    let mut scores: Vec<f32> =  Vec::new();
-    for gene in genes.iter() {
-        scores.push(score(*gene));
-    }
-    scores
 }
 fn mutate_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
     for sample in pool.iter_mut() {
@@ -65,34 +57,13 @@ fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
     }
     }
 fn main() {
-    //Parameters
-    let mut n_generations: i32 = 10;
-    let mut  n_samples: i32 = 10;
-    let mut mut_rate:u32 = 5;
-    let mut breed_rate:u32 = 5;
-    let args: Vec<String> = env::args().collect();
+    let params = get_params::get_params();
     let mut rng = rand::thread_rng();
-    //handle args
-    for arg in args.iter() {
-        let parts: Vec<&str> = arg.split(|c| c == '=').collect();
-        if parts.len() < 2 {
-            continue;
-        }
-        let setting = parts[0];
-        let value: i32 = parts[1].parse::<i32>().expect("Should"); 
-        match setting {
-            "--generations" => n_generations = value,
-            "--samples" => n_samples = value,
-            "--mutationRate" => mut_rate = value as u32,
-            "--breedRate" => breed_rate = value as u32,
-            &_ => println!("Invalid Arg: {}", setting),
-        }
-    }
-    println!("Samples: {}", n_samples);
-    println!("Generations: {}", n_generations);
+    println!("Samples: {}", params.n_samples);
+    println!("Generations: {}", params.n_generations);
     //Create Gene pool
     let mut pool: Vec<Sample> = Vec::new();
-    for _i in 0..n_samples {
+    for _i in 0..params.n_samples {
         let gene:u32 = rng.gen::<u32>();
         pool.push(Sample {
             gene: gene,
@@ -100,19 +71,19 @@ fn main() {
         });
     }
     //Evolution Process.
-    for i in 0..n_generations {
+    for i in 0..params.n_generations {
         //sort samples by score
         pool.sort_by(|s_1, s_2| s_1.score.partial_cmp(&s_2.score).unwrap());
-        if(i % 15 == 0){
+        if i % 15 == 0 {
         println!("Best is:   {}", pool[0].score);
-        println!("Median is: {}", pool[(n_samples/2) as usize].score);
-        println!("Worst is:  {}", pool[(n_samples - 1) as usize].score);
+        println!("Median is: {}", pool[(params.n_samples/2) as usize].score);
+        println!("Worst is:  {}", pool[(params.n_samples - 1) as usize].score);
         }
 
         let best_gene = pool[0].gene;
         let best_score = pool[0].score;
-        breed_pool(&mut pool, mut_rate, &mut rng);
-        mutate_pool(&mut pool, mut_rate, &mut rng);
+        breed_pool(&mut pool, params.mut_rate, &mut rng);
+        mutate_pool(&mut pool, params.mut_rate, &mut rng);
         pool[0] = Sample{
             gene: best_gene,
             score: best_score

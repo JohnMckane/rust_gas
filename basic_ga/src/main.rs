@@ -33,7 +33,7 @@ fn mutate_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
 }
 fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
     let n_breeders:usize = (pool.len() * rate as usize / 100) as usize;
-    let mut child_index = pool.len() - 1;
+    let mut children:Vec<Sample> = Vec::new();
     for i in 0..n_breeders {
         //Pick index of "mate"
         let mate_index:usize = rng.gen::<usize>() % pool.len();
@@ -47,19 +47,22 @@ fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         //make new samples
         let mut gene:u32 = head_g1 | tail_g2;
         let mut new_score:f64 = score(gene);
-        pool[child_index] = Sample {
+        children.push( Sample {
             gene: gene,
             score: new_score
-        };
-        child_index -= 1;
+        });
         gene = head_g2 | tail_g1;
         new_score = score(gene);
-        pool[child_index] = Sample {
+        children.push(Sample {
             gene: gene,
             score: new_score
-        };
-        child_index -= 1;
+        });
         }
+    let pool_size = pool.len();
+    let children_size = children.len();
+    for i in 0..children_size {
+        pool[pool_size-(i+1)] = children.pop().expect("Should be ok");
+    }
     }
 fn main() {
     //Parameters
@@ -100,15 +103,17 @@ fn main() {
     for i in 0..n_generations {
         //sort samples by score
         pool.sort_by(|s_1, s_2| s_1.score.partial_cmp(&s_2.score).unwrap());
+        println!("Best is:   {}", pool[0].score);
+        println!("Median is: {}", pool[(n_samples/2) as usize].score);
+        println!("Worst is:  {}", pool[(n_samples - 1) as usize].score);
+
         let best_gene = pool[0].gene;
         let best_score = pool[0].score;
         breed_pool(&mut pool, mut_rate, &mut rng);
         mutate_pool(&mut pool, mut_rate, &mut rng);
-        pool[0] = Sample{
-            gene: best_gene,
-            score: best_score
-        };
-        println!("Best is: {}", pool[0].score);
-        println!("Worst is: {}", pool[(n_samples - 1) as usize].score);
+        //pool[0] = Sample{
+            //gene: best_gene,
+            //score: best_score
+        //};
     }
 }

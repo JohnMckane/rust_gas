@@ -5,15 +5,15 @@ use rand::rngs::ThreadRng;
 //Sample struct contains samples gene and score
 struct Sample {
     gene: u32,
-    score: f64
+    score: f32
 }
-fn score(gene: u32) -> f64 {
-        let phenotype = gene as f64 - u32::MAX as f64 /2.0 ;
-        phenotype
+fn score(gene: u32) -> f32 {
+        let phenotype = (gene as f32 - u32::MAX as f32 /2.0) / (0.125 * u32::MAX as f32) ;
+        -phenotype * (phenotype * 10.0 * 3.141592).sin() + 1.0
 }
 //This is possibly rendundant
-fn score_vec(genes: &Vec<u32>) -> Vec<f64>{
-    let mut scores: Vec<f64> =  Vec::new();
+fn score_vec(genes: &Vec<u32>) -> Vec<f32>{
+    let mut scores: Vec<f32> =  Vec::new();
     for gene in genes.iter() {
         scores.push(score(*gene));
     }
@@ -46,7 +46,7 @@ fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         let tail_g2 = (g2 << middle) >> middle;
         //make new samples
         let mut gene:u32 = head_g1 | tail_g2;
-        let mut new_score:f64 = score(gene);
+        let mut new_score:f32 = score(gene);
         children.push( Sample {
             gene: gene,
             score: new_score
@@ -103,9 +103,11 @@ fn main() {
     for i in 0..n_generations {
         //sort samples by score
         pool.sort_by(|s_1, s_2| s_1.score.partial_cmp(&s_2.score).unwrap());
+        if(i % 15 == 0){
         println!("Best is:   {}", pool[0].score);
         println!("Median is: {}", pool[(n_samples/2) as usize].score);
         println!("Worst is:  {}", pool[(n_samples - 1) as usize].score);
+        }
 
         let best_gene = pool[0].gene;
         let best_score = pool[0].score;

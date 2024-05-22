@@ -9,7 +9,7 @@ struct Sample {
 }
 fn score(gene: u32) -> f64 {
         let phenotype = gene as f64 - u32::MAX as f64 /2.0 ;
-        phenotype * phenotype
+        phenotype
 }
 //This is possibly rendundant
 fn score_vec(genes: &Vec<u32>) -> Vec<f64>{
@@ -111,9 +111,9 @@ fn main() {
         let best_score = pool[0].score;
         breed_pool(&mut pool, mut_rate, &mut rng);
         mutate_pool(&mut pool, mut_rate, &mut rng);
-        //pool[0] = Sample{
-            //gene: best_gene,
-            //score: best_score
-        //};
+        pool[0] = Sample{
+            gene: best_gene,
+            score: best_score
+        };
     }
 }

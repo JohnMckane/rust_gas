@@ -58,9 +58,11 @@ fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
     }
 fn main() {
     let params = get_params::get_params();
+    if params.problem == "prisoners" {
+        println!("jail");
+        return;
+    }
     let mut rng = rand::thread_rng();
-    println!("Samples: {}", params.n_samples);
-    println!("Generations: {}", params.n_generations);
     //Create Gene pool
     let mut pool: Vec<Sample> = Vec::new();
     for _i in 0..params.n_samples {

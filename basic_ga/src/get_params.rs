@@ -29,6 +29,7 @@ pub fn get_params() -> Params {
             "--samples" => params.n_samples = value.parse::<u32>().expect("Should be number"),
             "--mutationRate" => params.mut_rate = value.parse::<u32>().expect("Should be number"),
             "--breedRate" => params.breed_rate = value.parse::<u32>().expect("Should be number"),
+            "--problem" => params.problem = value.to_string(),
             &_ => println!("Invalid Arg: {}", setting),
         }
     }

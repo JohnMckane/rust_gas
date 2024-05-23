@@ -56,13 +56,8 @@ fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         pool[pool_size-(i+1)] = children.pop().expect("Should be ok");
     }
     }
-fn main() {
-    let params = get_params::get_params();
-    if params.problem == "prisoners" {
-        println!("jail");
-        return;
-    }
-    let mut rng = rand::thread_rng();
+fn optimize_fx(params:get_params::Params) {
+let mut rng = rand::thread_rng();
     //Create Gene pool
     let mut pool: Vec<Sample> = Vec::new();
     for _i in 0..params.n_samples {
@@ -91,4 +86,15 @@ fn main() {
             score: best_score
         };
     }
+}
+fn prisoners(params:get_params::Params) {
+}
+fn main() {
+    let params = get_params::get_params();
+    if params.problem == "prisoners" {
+        prisoners(params);
+        return;
+    }
+    optimize_fx(params);
+    
 }

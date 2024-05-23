@@ -3,7 +3,8 @@ pub struct Params {
     pub n_generations: u32,
     pub n_samples: u32,
     pub mut_rate:u32,
-    pub breed_rate:u32
+    pub breed_rate:u32,
+    pub problem:String
 }
 pub fn get_params() -> Params {
     let args: Vec<String> = env::args().collect();
@@ -11,7 +12,8 @@ pub fn get_params() -> Params {
              n_generations: 10,
              n_samples: 10,
              mut_rate:10,
-             breed_rate:10
+             breed_rate:10,
+             problem: "minf(x)".to_string()
         };  
     //handle args
     for arg in args.iter() {
@@ -20,13 +22,13 @@ pub fn get_params() -> Params {
             continue;
         }
         let setting = parts[0];
-        let value:u32 = parts[1].parse::<u32>().expect("Should"); 
+        let value = parts[1];
 
         match setting {
-            "--generations" => params.n_generations = value,
-            "--samples" => params.n_samples = value,
-            "--mutationRate" => params.mut_rate = value,
-            "--breedRate" => params.breed_rate = value,
+            "--generations" => params.n_generations = value.parse::<u32>().expect("Should be number"),
+            "--samples" => params.n_samples = value.parse::<u32>().expect("Should be number"),
+            "--mutationRate" => params.mut_rate = value.parse::<u32>().expect("Should be number"),
+            "--breedRate" => params.breed_rate = value.parse::<u32>().expect("Should be number"),
             &_ => println!("Invalid Arg: {}", setting),
         }
     }

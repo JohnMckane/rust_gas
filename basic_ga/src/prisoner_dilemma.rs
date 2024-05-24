@@ -77,7 +77,8 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
 // Method to calculate mean and std
 fn mean(jail:&Vec<Prisoner>) -> (f64, f64) {
     let mean = jail.iter().map(|p| p.score).sum::<u64>() as f64/ (jail.len() as f64);
-    (mean, 0.0)  
+    let std = jail.iter().map(|p| (p.score as f64 - mean).powf(2.0)/ jail.len() as f64).sum::<f64>().sqrt();
+    (mean, std)  
 }
 #[cfg(test)]
 mod test_mean {

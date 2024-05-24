@@ -77,13 +77,23 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
 #[cfg(test)]
 mod test {
     use super::*;
+    //Test player that always cooperates against one that always defects
     #[test]
-    fn test_1() {
-        assert_eq!(1,1);
-    }
-    #[test]
-    fn test_2() {
-        assert_eq!(2, 1);
+    fn test_play_1() {
+        let mut p_0 = Prisoner {
+            strategy: 0,
+            assumptions: 0,
+            score: 0
+        };
+        let mut p_1 = Prisoner {
+            strategy: u64::MAX,
+            assumptions: 0,
+            score: 0
+        };
+        let result = play(&p_0, &p_1);
+        assert_eq!(result.0, 0);
+        assert_eq!(result.1, 50);
+
     }
 }
 

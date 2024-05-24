@@ -85,15 +85,19 @@ mod test_mean {
     use super::*;
     //Test mean calculated correctly
     #[test]
-    fn test_1() {
+    fn test_mean_1() {
        let jail:Vec<Prisoner> = gen_jail(vec![1, 2, 3]);
        assert_eq!(mean(&jail).0, 2.0);
     }
     #[test]
-    fn test_2() {
+    fn test_mean_2() {
        let jail:Vec<Prisoner> = gen_jail(vec![2, 4, 6]);
-       let jail:Vec<Prisoner> = vec![Prisoner {assumptions:0, strategy:0,score: 2}, Prisoner {assumptions:0, strategy:0, score: 4}, Prisoner {assumptions:0, strategy:0,score:6}]; 
        assert_eq!(mean(&jail).0, 4.0);
+    }
+    #[test]
+    fn test_std() {
+        let jail:Vec<Prisoner> = gen_jail(vec![2, 4, 4, 4, 5, 5, 7, 9]);
+       assert_eq!(mean(&jail), (5.0, 2.0));
     }
     fn gen_jail(scores:Vec<u64>) -> Vec<Prisoner> {
         let mut jail:Vec<Prisoner> = Vec::new();

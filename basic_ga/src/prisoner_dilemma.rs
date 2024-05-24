@@ -74,4 +74,16 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
         //Mutate Players
     }
 }
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_1() {
+        assert_eq!(1,1);
+    }
+    #[test]
+    fn test_2() {
+        assert_eq!(2, 1);
+    }
+}
 

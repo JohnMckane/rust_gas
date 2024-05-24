@@ -64,9 +64,9 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
                 let p2:&Prisoner = &pool[k as usize];
                 let (s1, s2) = play(p1, p2);
                 let p:&mut Prisoner = &mut pool[j as usize];
-                p.score = s1;
+                p.score += s1;
                 let p:&mut Prisoner = &mut pool[k as usize];
-                p.score = s2;
+                p.score += s2;
             }
         };
         //Calculate mean and std
@@ -74,8 +74,28 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
         //Mutate Players
     }
 }
+// Method to calculate mean and std
+fn mean(jail:&Vec<Prisoner>) -> (f64, f64) {
+    let mean = jail.iter().map(|p| p.score).sum::<u64>() as f64/ (jail.len() as f64);
+    (mean, 0.0)  
+}
 #[cfg(test)]
-mod test {
+mod test_mean {
+    use super::*;
+    //Test mean calculated correctly
+    #[test]
+    fn test_1() {
+       let jail:Vec<Prisoner> = vec![Prisoner {assumptions:0, strategy:0,score: 1}, Prisoner {assumptions:0, strategy:0, score: 2}, Prisoner {assumptions:0, strategy:0,score:3}]; 
+       assert_eq!(mean(&jail).0, 2.0);
+    }
+    #[test]
+    fn test_2() {
+       let jail:Vec<Prisoner> = vec![Prisoner {assumptions:0, strategy:0,score: 2}, Prisoner {assumptions:0, strategy:0, score: 4}, Prisoner {assumptions:0, strategy:0,score:6}]; 
+       assert_eq!(mean(&jail).0, 4.0);
+    }
+}
+#[cfg(test)]
+mod test_play {
     use super::*;
     //Test player that always cooperates against one that always defects
     #[test]
@@ -93,7 +113,25 @@ mod test {
         let result = play(&p_0, &p_1);
         assert_eq!(result.0, 0);
         assert_eq!(result.1, 50);
-
+    }
+    //Test that two identical players have same score
+    #[test]
+    fn test_identical_players() {
+        for i in 0..300{
+            let  p_0 = Prisoner {
+                strategy: i,
+                assumptions: 0,
+                score: 0
+            };
+        let  p_1 = Prisoner {
+            strategy: i,
+            assumptions: 0,
+            score: 0
+        };
+        let results = [play(&p_0, &p_1), play(&p_1, &p_0)];
+        assert_eq!(results[0], results[1]);
+        assert_eq!(results[0].0, results[0].1);
+        }
     }
 }
 

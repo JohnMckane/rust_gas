@@ -57,9 +57,13 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
     }
     //Run evolution process
     for _i in 0..params.n_generations {
+        println!("{}", pool.len());
         //Play each player against each other player, giving them scores
-        for j in 0..params.n_samples-1 {
-            for k in j+1..params.n_samples {
+        if pool.len() == 0  {
+            break;
+        }
+        for j in 0..pool.len()-1 {
+            for k in j+1..pool.len() {
                 let p1:&Prisoner = &pool[j as usize];
                 let p2:&Prisoner = &pool[k as usize];
                 let (s1, s2) = play(p1, p2);
@@ -69,9 +73,47 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
                 p.score += s2;
             }
         };
+        //Cull bottom players
+        pool.sort_by_key(|p| p.score);
+        while pool.len() > params.n_samples as usize {
+            pool.pop();
+        }
         //Calculate mean and std
+        let (mean, std) = mean(&pool);
+        println!("mean: {}", mean);
+        println!("std : {}", std);
+        let mut mate_trac:Vec<(Prisoner, u8)> = Vec::new();
         //Mate Players
-        //Mutate Players
+        while pool.len() > 0 {
+            let p = pool.pop().unwrap();
+            let mut mate_chances:u8 = 0; 
+            if p.score as f64 > mean -  std {
+                mate_chances += 1;
+            }
+            if p.score as f64 > mean + std {
+                mate_chances += 1;
+            }
+
+            mate_trac.push((p , mate_chances));
+        }
+        mate_trac.sort_by_key(|p| - (p.1 as i8));
+        while mate_trac.len() > 0 {
+            let mut p = mate_trac.pop().unwrap();
+            if p.1 == 0 || mate_trac.len() == 0{
+                continue;
+            }
+            p.1 -= 1;
+            // Pick random pairing
+            let mate_index =rng.gen::<usize>() % mate_trac.len();
+            mate_trac[mate_index].1 -=1;
+            let mate = &mate_trac[mate_index];
+            let ass_mask = rng.gen::<u8>();
+            let str_mask = rng.gen::<u64>();
+            let mut children = (Prisoner{score:0, strategy:(p.0.strategy & str_mask )| (mate.0.strategy & !str_mask), assumptions:(p.0.assumptions & ass_mask )| (mate.0.assumptions & !ass_mask)}, Prisoner{score:0,strategy:(mate.0.strategy & str_mask )| (p.0.strategy & !str_mask), assumptions:(mate.0.assumptions & ass_mask )| (p.0.assumptions & !ass_mask)});
+            pool.push(children.0);
+            pool.push(children.1);
+            mate_trac.sort_by_key(|p|- (p.1 as i8));
+        }
     }
 }
 // Method to calculate mean and std

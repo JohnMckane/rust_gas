@@ -1,6 +1,9 @@
 use rand::Rng;
 use rand::rngs::ThreadRng;
 use crate::get_params;
+#[derive(Copy)]
+#[derive(Clone)]
+#[derive(PartialEq)]
 struct Prisoner {
     strategy:u64,
     assumptions: u8,
@@ -74,10 +77,14 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
             }
         };
         //Cull bottom players
-        pool.sort_by_key(|p| p.score);
+        pool.sort_by_key(|p| - (p.score as i32));
         while pool.len() > params.n_samples as usize {
             pool.pop();
         }
+        //Save top 3, re insert at bottom of loop.
+        let mut b3:Vec<Prisoner> = vec![pool[0], pool[1], pool[2], pool[3], pool[4], pool[5]];
+        println!("Best:   {}" , pool[0].score);
+        println!("Wosrst: {}" , pool[pool.len() -1].score);
         //Calculate mean and std
         let (mean, std) = mean(&pool);
         println!("mean: {}", mean);
@@ -113,6 +120,32 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
             pool.push(children.0);
             pool.push(children.1);
             mate_trac.sort_by_key(|p|- (p.1 as i8));
+        }
+        //Mutate step, for each 'chromosone' of sample to be mutated, use xor of random number.
+        for prisoner in pool.iter_mut() {
+            //Set score to 0
+                (*prisoner).score = 0;
+
+            if rng.gen::<u32>() % 100 > params.mut_rate  {
+                continue;
+            }
+            (*prisoner).strategy = prisoner.strategy  ^ (rng.gen::<u64>() &  rng.gen::<u64>() &  rng.gen::<u64>());
+            (*prisoner).assumptions = prisoner.assumptions ^ (rng.gen::<u8>() & rng.gen::<u8>() & rng.gen::<u8>());
+        }
+        while b3.len() > 0 {
+        let mut p = b3.pop().expect("not found");
+        p.score = 0;
+        if p.score > 0 {
+                println!("score not reset after pop");
+                break;
+            }
+        pool.push(p);
+        }
+        for p in pool.iter(){
+            if p.score > 0 {
+                println!("score not reset");
+                break;
+            }
         }
     }
 }

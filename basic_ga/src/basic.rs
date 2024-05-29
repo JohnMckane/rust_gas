@@ -14,7 +14,6 @@ impl Sample {
             };
         sample.score();
         sample
-
     }
     fn score(&mut self) -> f32 {
         let phenotype = (self.gene as f32 - u32::MAX as f32 /2.0) / (0.125 * u32::MAX as f32) ;
@@ -24,6 +23,14 @@ impl Sample {
     fn set_gene(&mut self, gene:u32) {
         self.gene = gene;
         self.score();
+    }
+    // Get head, used for breed step
+    fn head(self, middle:u8) -> u32 {
+        (self.gene >> middle) << middle
+    }
+    //Get tail, used for breed step
+    fn tail(self, middle:u8) -> u32 {
+        (self.gene << middle) >> middle
     }
 }
 
@@ -45,17 +52,11 @@ fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         //Pick index of "mate"
         let mate_index:usize = rng.gen::<usize>() % pool.len();
         let middle = rng.gen::<u8>() % 32;
-        let g1:u32 = pool[i].gene;
-        let g2:u32 = pool[mate_index].gene;
-        let head_g1 = (g1 >> middle) << middle;
-        let head_g2 = (g2 >> middle) << middle;
-        let tail_g1 = (g1 << middle) >> middle;
-        let tail_g2 = (g2 << middle) >> middle;
+        let mate_1 = pool[i];
+        let mate_2 = pool[mate_index];
         //make new samples
-        let mut gene:u32 = head_g1 | tail_g2;
-        children.push(Sample::new(gene));
-        gene = head_g2 | tail_g1;
-        children.push(Sample::new(gene));
+        children.push(Sample::new(mate_1.head(middle) | mate_2.tail(middle)));
+        children.push(Sample::new(mate_2.head(middle) | mate_1.tail(middle)));
         }
     let pool_size = pool.len();
     let children_size = children.len();

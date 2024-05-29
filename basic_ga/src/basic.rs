@@ -1,23 +1,32 @@
 use rand::Rng;
 use rand::rngs::ThreadRng;
 use crate::get_params;
+#[derive(Clone, Copy)]
 struct Sample {
     gene: u32,
     score: f32
 }
 impl Sample {
     fn new(gene:u32) -> Sample {
-        let score = score(gene);
-            Sample {
+        let mut sample = Sample {
                 gene: gene,
-                score: score
-            }
+                score: 0.0
+            };
+        sample.score();
+        sample
+
+    }
+    fn score(&mut self) -> f32 {
+        let phenotype = (self.gene as f32 - u32::MAX as f32 /2.0) / (0.125 * u32::MAX as f32) ;
+        self.score = -phenotype * (phenotype * 10.0 * 3.141592).sin() + 1.0;
+        self.score
+    }
+    fn set_gene(&mut self, gene:u32) {
+        self.gene = gene;
+        self.score();
     }
 }
-fn score(gene: u32) -> f32 {
-        let phenotype = (gene as f32 - u32::MAX as f32 /2.0) / (0.125 * u32::MAX as f32) ;
-        -phenotype * (phenotype * 10.0 * 3.141592).sin() + 1.0
-}
+
 fn mutate_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
     for sample in pool.iter_mut() {
         let seed:u32 =  rng.gen::<u32>();
@@ -25,8 +34,7 @@ fn mutate_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         if p < rate {
             let mut_dig:u8 = (seed % 32) as u8;
             let mutator:u32 = 1 << mut_dig;
-            sample.gene = sample.gene ^ mutator;
-            sample.score = score(sample.gene);
+            sample.set_gene(sample.gene ^ mutator);
         }
     }
 }
@@ -70,15 +78,10 @@ pub fn optimize_fx(params:get_params::Params, rng: &mut ThreadRng) {
         println!("Median is: {}", pool[(params.n_samples/2) as usize].score);
         println!("Worst is:  {}", pool[(params.n_samples - 1) as usize].score);
         }
-
-        let best_gene = pool[0].gene;
-        let best_score = pool[0].score;
+        let best_sample = pool[0].clone();
         breed_pool(&mut pool, params.mut_rate, rng);
         mutate_pool(&mut pool, params.mut_rate, rng);
-        pool[0] = Sample{
-            gene: best_gene,
-            score: best_score
-        };
+        pool[0] = best_sample;
     }
 }
 

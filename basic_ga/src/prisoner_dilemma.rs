@@ -32,40 +32,40 @@ impl Prisoner {
     }
 }
 // Using cooperate = 0, defect = 1
-fn play(p1:&Prisoner, p2:&Prisoner)-> (f64, f64){
-    p1.init_history();
-    p2.init_history();
-    //Play p1 and p2 against each other 10 times.
+fn play( jail:&mut Vec<Prisoner>, i:usize, j:usize)-> (f64, f64){
+    jail[i].init_history();
+    jail[j].init_history();
+    //Play both players against each other 10 times.
     for _i in 0..10 {
         //Get both players next moves
-        let p1_next:u8 = ((p1.strategy & ((1 as u64) << p1.history)) >> p1.history) as u8;
-        let p2_next:u8 = ((p2.strategy & ((1 as u64) << p2.history)) >> p2.history) as u8;
+        let p1_next:u8 = ((jail[i].strategy & ((1 as u64) << jail[i].history)) >> jail[i].history) as u8;
+        let p2_next:u8 = ((jail[j].strategy & ((1 as u64) << jail[j].history)) >> jail[j].history) as u8;
         //Score Players
         if p1_next == 0 {
             if p2_next == 0 {
-                p1.score += 3.0;
-                p2.score += 3.0;
+                jail[i].score += 3.0;
+                jail[j].score += 3.0;
             } else {
-                p2.score += 5.0;
+                jail[j].score += 5.0;
             }
         } else {
             if p2_next == 0 {
-                p2.score += 5.0;
+                jail[j].score += 5.0;
             } else {
-                p1.score += 1.0;
-                p2.score += 1.0;
+                jail[i].score += 1.0;
+                jail[j].score += 1.0;
             }
         }
         //Add each players next move to history.
         //Use bitwise to treat history like two queues
        let front_mask:u8 = 0b00111000; 
        let back_mask:u8 =  0b00000111; 
-       p1.history = p1.history >> 1;
-       p1.history = ((p1.history & front_mask) & p1_next << 5) | ((p1.history & back_mask) & p2_next << 2);
-       p2.history = p2.history >> 1;
-       p2.history = ((p2.history & front_mask) & p2_next << 5) | ((p2.history & back_mask) & p1_next << 2);
+       jail[i].history = jail[i].history >> 1;
+       jail[i].history = ((jail[i].history & front_mask) & p1_next << 5) | ((jail[i].history & back_mask) & p2_next << 2);
+       jail[j].history = jail[j].history >> 1;
+       jail[j].history = ((jail[j].history & front_mask) & p2_next << 5) | ((jail[j].history & back_mask) & p1_next << 2);
     }
-    (p1.score, p2.score)
+    (jail[i].score, jail[j].score)
 
 }
 pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
@@ -83,13 +83,7 @@ pub fn prisoners(params:get_params::Params, rng: &mut ThreadRng) {
         }
         for j in 0..pool.len()-1 {
             for k in j+1..pool.len() {
-                let p1:&Prisoner = &pool[j as usize];
-                let p2:&Prisoner = &pool[k as usize];
-                let (s1, s2) = play(p1, p2);
-                let p:&mut Prisoner = &mut pool[j as usize];
-                p.score += s1;
-                let p:&mut Prisoner = &mut pool[k as usize];
-                p.score += s2;
+                play(&mut pool, j, k);
             }
         };
         //Cull bottom players

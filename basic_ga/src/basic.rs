@@ -5,6 +5,15 @@ struct Sample {
     gene: u32,
     score: f32
 }
+impl Sample {
+    fn new(gene:u32) -> Sample {
+        let score = score(gene);
+            Sample {
+                gene: gene,
+                score: score
+            }
+    }
+}
 fn score(gene: u32) -> f32 {
         let phenotype = (gene as f32 - u32::MAX as f32 /2.0) / (0.125 * u32::MAX as f32) ;
         -phenotype * (phenotype * 10.0 * 3.141592).sin() + 1.0
@@ -36,17 +45,9 @@ fn breed_pool(pool: &mut Vec<Sample>, rate: u32, rng: &mut ThreadRng){
         let tail_g2 = (g2 << middle) >> middle;
         //make new samples
         let mut gene:u32 = head_g1 | tail_g2;
-        let mut new_score:f32 = score(gene);
-        children.push( Sample {
-            gene: gene,
-            score: new_score
-        });
+        children.push(Sample::new(gene));
         gene = head_g2 | tail_g1;
-        new_score = score(gene);
-        children.push(Sample {
-            gene: gene,
-            score: new_score
-        });
+        children.push(Sample::new(gene));
         }
     let pool_size = pool.len();
     let children_size = children.len();
@@ -58,11 +59,7 @@ pub fn optimize_fx(params:get_params::Params, rng: &mut ThreadRng) {
     //Create Gene pool
     let mut pool:Vec<Sample> = Vec::new();
     for _i in 0..params.n_samples {
-        let gene:u32 = rng.gen::<u32>();
-        pool.push(Sample {
-            gene: gene,
-            score: score(gene),
-        });
+        pool.push(Sample::new(rng.gen::<u32>()));
     }
     //Evolution Process.
     for i in 0..params.n_generations {

@@ -171,23 +171,23 @@ mod test_mean {
     //Test mean calculated correctly
     #[test]
     fn test_mean_1() {
-       let jail:Vec<Prisoner> = gen_jail(vec![1, 2, 3]);
+       let jail:Vec<Prisoner> = gen_jail(vec![1.0, 2.0, 3.0]);
        assert_eq!(mean(&jail).0, 2.0);
     }
     #[test]
     fn test_mean_2() {
-       let jail:Vec<Prisoner> = gen_jail(vec![2, 4, 6]);
+       let jail:Vec<Prisoner> = gen_jail(vec![2.0, 4.0, 6.0]);
        assert_eq!(mean(&jail).0, 4.0);
     }
     #[test]
     fn test_std() {
-        let jail:Vec<Prisoner> = gen_jail(vec![2, 4, 4, 4, 5, 5, 7, 9]);
+        let jail:Vec<Prisoner> = gen_jail(vec![2.0, 4.0, 4.0, 4.0, 5.0, 5.0, 7.0, 9.0]);
        assert_eq!(mean(&jail), (5.0, 2.0));
     }
-    fn gen_jail(scores:Vec<u64>) -> Vec<Prisoner> {
+    fn gen_jail(scores:Vec<f64>) -> Vec<Prisoner> {
         let mut jail:Vec<Prisoner> = Vec::new();
         for s in scores.iter() {
-            jail.push(Prisoner {assumptions:0, strategy:0,score: *s});
+            jail.push(Prisoner {assumptions:0, strategy:0,score: *s, history: 0});
         }
         jail
     }
@@ -198,29 +198,20 @@ mod test_play {
     //Test player that always cooperates against one that always defects
     #[test]
     fn test_play_1() {
-        let mut p_0 = Prisoner {
-            strategy: 0,
-            assumptions: 0,
-            score: 0.0
-        };
-        let mut p_1 = Prisoner {
-            strategy: u64::MAX,
-            assumptions: 0,
-            score: 0.0
-        };
-        let result = play(&p_0, &p_1);
-        assert_eq!(result.0, 0);
-        assert_eq!(result.1, 50);
+        let mut jail:Vec<Prisoner> = vec!{Prisoner::new(0, 0),
+            Prisoner::new(u64::MAX, 0)};
+        let result = play(&mut jail, 0, 1);
+        assert_eq!(result.0, 0.0);
+        assert_eq!(result.1, 50.0);
     }
     //Test that two identical players have same score
     #[test]
     fn test_identical_players() {
         for i in 0..300{
-            let  p_0 = Prisoner::new(i, 0);
-            let  p_1 = Prisoner::new(i, 0);
-        let results = [play(&p_0, &p_1), play(&p_1, &p_0)];
-        assert_eq!(results[0], results[1]);
-        assert_eq!(results[0].0, results[0].1);
+            let mut jail:Vec<Prisoner> = vec!{Prisoner::new(i, 0),
+                Prisoner::new(i, 0)};
+            let result = play(&mut jail, 0, 1);
+            assert_eq!(result.0, result.1);
         }
     }
 }
